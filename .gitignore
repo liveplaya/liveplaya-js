@@ -1,6 +1,5 @@
-*.pyc
 *~
 build/
 node_modules/
 npm-debug.log
-ghostdriver.log
+.DS_Store

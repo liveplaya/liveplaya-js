@@ -1,0 +1,6 @@
+image: node:8
+
+build:
+  stage: build
+  script:
+    - make clean all 
