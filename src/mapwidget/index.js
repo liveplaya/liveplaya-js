@@ -1,6 +1,6 @@
 import {select} from 'd3-selection';
 import {geoMercator as mercator} from 'd3-geo';
-import {MapData, StaticDataSource, firstCity} from '../mapdata';
+import {MapData, StaticDataSource, AjaxDataSource, firstCity} from '../mapdata';
 import {fromZoom, toZoom} from '../util';
 import {clamp} from '../math';
 import {enableZoom} from './zoomer'; 
@@ -17,6 +17,8 @@ class MapWidget {
     constructor(element, {
         center, 
         data=thisYearBaseMap, 
+        dataUrl = null,
+        dataPollInterval = 30,
         zoom=14.38, 
         maxZoom=18,
         minZoom=14,
@@ -27,9 +29,11 @@ class MapWidget {
         mutedColor='#ccc',
         backgroundColor='#fff',
         onclick=(f) => console.log(f.name + ' clicked'),
+        onviewchanged=() => {},
     }={}) {
         
-        const mapdata = new MapData([new StaticDataSource(data)]);
+        const mapdata = new MapData(dataUrl ? [new StaticDataSource(data), new AjaxDataSource(dataUrl, dataPollInterval)] : 
+            [new StaticDataSource(data)]);
 
         zoom = clamp(zoom, minZoom, maxZoom);
 
@@ -47,8 +51,11 @@ class MapWidget {
                 const city = firstCity(mapdata.features);
                 center = city ? city.center : null;
             }
-            renderMap(element, mapdata.features, currentProjection(), this, onclick);
+            renderMap(element, mapdata.features, currentProjection(), this, this.onclick);
         };
+
+        this.onviewchanged = onviewchanged;
+        this.onclick = onclick;
 
         this.project = (lnglat) => {
             return currentProjection()(lnglat);
@@ -61,6 +68,7 @@ class MapWidget {
         this.setView = (newCenter, newZoom) => {
             center = newCenter;
             zoom = clamp(newZoom, minZoom, maxZoom);
+            this.onviewchanged(this);
             render();
         };
 

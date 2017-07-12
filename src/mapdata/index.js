@@ -28,6 +28,9 @@ class MapData {
                 add(f);
             }
             notify(this.features);
+            if (this.onupdate) {
+                this.onupdate(this.features);
+            }
         };
 
         this.query = (callback) => {
@@ -39,6 +42,10 @@ class MapData {
             for(let ds of datasources) {
                 ds.query(update);
             }
+        }
+
+        this._featureById = (id) => {
+            return featuresById.get(id);
         }
 
         Object.defineProperty(this, 'features', {

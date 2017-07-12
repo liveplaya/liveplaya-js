@@ -66,7 +66,7 @@ function parseGeojson(data) {
         else if (df.properties.brc == 'art') {
             parsedFeatures.push(new Art(city, df.properties.name, df.geometry.coordinates));
         }
-        else if (df.geometry.type == 'Point') {
+        else if (df.geometry && df.geometry.type == 'Point') {
             parsedFeatures.push(new Marker(df.geometry.coordinates, df.properties.name, df.properties.color, df.id));
         }
     }

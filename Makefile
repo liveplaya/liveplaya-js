@@ -1,5 +1,5 @@
-.PHONY: all demo clean
-	
+.PHONY: all docs debug clean test
+
 BUILDDIR = build
 NPM = npm
 BROWSERIFY = node_modules/.bin/browserify
@@ -26,3 +26,5 @@ node_modules:
 clean:
 	rm -rf build
 	rm -rf node_modules
+
+

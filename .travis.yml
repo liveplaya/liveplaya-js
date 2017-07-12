@@ -1,0 +1,8 @@
+language: node_js
+node_js:
+- 8
+matrix:
+  include:
+  - os: linux
+    dist: trusty
+    script: make all
