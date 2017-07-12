@@ -22,7 +22,7 @@ class MapWidget {
         zoom=14.38, 
         maxZoom=18,
         minZoom=14,
-        showGrid=true, 
+        showGrid=false, 
         showArt=true, 
         rasterTiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
         outlineColor='#999',
@@ -194,6 +194,7 @@ function renderMap(element, features, projection, style, onclick) {
             });
 
     const layerRenderers = [
+        renderTiles,
         renderGrid,
         renderRoads,
         renderLabels,

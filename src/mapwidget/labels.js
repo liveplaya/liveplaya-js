@@ -19,6 +19,7 @@ export function renderLabels(projection, container, features, style, onclick) {
         stroke: 'none',
         strokeWidth: 0,
         fill: style.outlineColor,
+        selectable: false,
     }});
     const cstreetLabels = cstreets.map((street) => { return {
         onclick: () => onclick(street),
@@ -32,6 +33,7 @@ export function renderLabels(projection, container, features, style, onclick) {
         stroke: 'none',
         strokeWidth: 0,
         fill: style.outlineColor,
+        selectable: false,
     }});
     const markerLabels = markers.map((marker) => { return {
         onclick: () => onclick(marker),
@@ -45,6 +47,7 @@ export function renderLabels(projection, container, features, style, onclick) {
         stroke: style.backgroundColor,
         strokeWidth: 7,
         fill: marker.color,
+        selectable: true,
     }});
 
     const group = container.select('g.labels');    
@@ -65,6 +68,7 @@ export function renderLabels(projection, container, features, style, onclick) {
             .attr('font-weight', (l) => l.fontWeight)
             .attr('text-anchor', (l) => l.anchor)
             .attr('fill', (l) => l.fill)
+            .attr('pointer-events', (l) => l.selectable ? 'visible' : 'none')
             .attr('transform', (l) => 'translate(' + l.pt.join(',') + ') rotate(' + toDegrees(l.ang) + ') translate(' + l.off.join(',') + ')')    
             .style('user-select', (l) => l.selectable ? 'allowed' : 'none')
             .on('click', (l)=> l.onclick)

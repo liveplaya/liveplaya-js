@@ -104,8 +104,6 @@ export function interpolateArc(center, radius, fromAngle, toAngle, npoints) {
 }
 
 
-
-
 function vadd(a,b,k) {
     k = k === undefined ? 1 : k;
     return [a[0]+k*b[0],a[1]+k*b[1]];
