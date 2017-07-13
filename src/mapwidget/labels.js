@@ -8,6 +8,7 @@ export function renderLabels(projection, container, features, style, onclick) {
     const markers = features.filter((f) => f instanceof Marker);
 
     const tstreetLabels = tstreets.map((street) => { return {
+        onclick: () => onclick(street),
         pt: projection(street.city.getLocation(street.direction, street.city.cstreets['L'].radius)),
         txt: street.name,
         ang: street.city.getBearing(street.direction.radians),
@@ -20,6 +21,7 @@ export function renderLabels(projection, container, features, style, onclick) {
         fill: style.outlineColor,
     }});
     const cstreetLabels = cstreets.map((street) => { return {
+        onclick: () => onclick(street),
         pt: projection(street.city.getLocation({hour:10, minute:0}, street.radius)),
         txt: street.name,
         ang: 0,
@@ -32,6 +34,7 @@ export function renderLabels(projection, container, features, style, onclick) {
         fill: style.outlineColor,
     }});
     const markerLabels = markers.map((marker) => { return {
+        onclick: () => onclick(marker),
         pt: projection(marker.coords),
         txt: marker.name,
         ang: 0,
@@ -54,6 +57,7 @@ export function renderLabels(projection, container, features, style, onclick) {
         .append('text')
             .attr('font-family', 'Helvetica, sans-serif')
             .attr('paint-order', 'stroke')
+            .style('cursor', 'default')
         .merge(nodes)
             .attr('stroke', (l) => l.stroke)
             .attr('stroke-width', (l) => l.strokeWidth)
@@ -62,5 +66,7 @@ export function renderLabels(projection, container, features, style, onclick) {
             .attr('text-anchor', (l) => l.anchor)
             .attr('fill', (l) => l.fill)
             .attr('transform', (l) => 'translate(' + l.pt.join(',') + ') rotate(' + toDegrees(l.ang) + ') translate(' + l.off.join(',') + ')')    
+            .style('user-select', (l) => l.selectable ? 'allowed' : 'none')
+            .on('click', (l)=> l.onclick)
             .text((l) => l.txt);
 }
