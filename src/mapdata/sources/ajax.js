@@ -3,34 +3,37 @@ import {request} from 'd3-request';
 
 export
 class AjaxDataSource {
-    constructor(url, refreshInterval) {
-    	let notify = () => {};
+    constructor(url, pollInterval, notify) {
         let timeoutId = null;
+        let features = [];
     	const req = request(url)
                  .mimeType("application/json")
                  .response(xhr => JSON.parse(xhr.responseText));
 
+        if (pollInterval === null || pollInterval === undefined) {
+            pollInterval = 5;
+        }
+
         const onresponse = (jsondata) => {
         	if (!jsondata) {
         		console.error('Failed to get data from ' + url);
-        		notify([]);
         	} else {
-        		const features = parseGeojson(jsondata);
+        		features = parseGeojson(jsondata);
         		notify(features);
         	}
-    		timeoutId = setTimeout(() => req.get(onresponse), refreshInterval*1000);
+    		timeoutId = setTimeout(() => req.get(onresponse), pollInterval*1000);
         };
 
-        this.query = (callback) => {
-			this.stop();
-			notify = callback;
-	        req.get(onresponse);
-        }
-
         this.stop = () => {
-	        clearTimeout(timeoutId);
-	    	req.abort();        	
+            clearTimeout(timeoutId);
+            req.abort();            
         }
 
+        Object.defineProperty(this, 'features', {
+            get: () => features,
+            enumerable: true,
+        });
+
+        req.get(onresponse);
     }
 }

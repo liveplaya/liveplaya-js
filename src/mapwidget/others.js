@@ -4,7 +4,7 @@ import {path as pathBuilder} from 'd3-path';
 import {geoPath} from 'd3-geo';
 import {Fence} from '../mapdata';
 
-export function renderOthers(projection, container, features, style, onclick) {
+export function renderOthers(projection, container, features, city, style, onclick) {
     features = features.filter((f) => !f.isRoad && !f.isPOI);
 
     const group = container.select('g.others');

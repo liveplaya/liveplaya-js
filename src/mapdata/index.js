@@ -1,70 +1,86 @@
 import {City} from './features';
+import {StaticDataSource, AjaxDataSource} from './sources';
+import {Listeners} from '../util'
 
 export
 class MapData {
-    constructor(datasources, {maxCachedFeatures = 1000} = {}) {
-        const featuresById = new Map();
-        let notify = () => {};
+    constructor(baseData) {
+        const listeners = new Listeners();
+        let sources = [new StaticDataSource(baseData)];
+        let features = [];
+        let city = null;
+ 
+        const update = () => {
+            const featuresById = new Map();
+            city = null;
 
-        const add = (feature) => {
-            const old = featuresById.get(feature.id);
-            if (old !== feature) {
-                if (old) {
-                    old.addedTo = null;
+            for(let src of sources) {
+                for(let f of src.features) {
+                    featuresById.set(f.id, f);
+                    if (f instanceof City) {
+                        city = f;
+                    }
                 }
-                featuresById.set(feature.id, feature);
-                feature.addedTo = this;
             }
+
+            for(let f of featuresById.values()) {
+                if (f.trackerId && featuresById.has(f.trackerId)) {
+                    f.tracker = featuresById.get(f.trackerId);
+                    f.tracker.tracked = true;
+                }
+            }
+
+            features = [...featuresById.values()];
+            listeners.notify('update', this);
         };
 
         const stop = () => {
-            for(let ds of datasources) {
+            for(let ds of sources) {
                 ds.stop();
             }
         };
 
-        const update = (dsFeatures) => {
-            for(let f of dsFeatures) {
-                add(f);
-            }
-            notify(this.features);
-            if (this.onupdate) {
-                this.onupdate(this.features);
-            }
+        this.clear = () => {
+            sources = [];
+            update();
+            return this;
         };
 
-        this.query = (callback) => {
-            stop();
-            notify = callback;
-            if (featuresById.size > maxCachedFeatures) {
-                featuresById.clear();
-            }
-            for(let ds of datasources) {
-                ds.query(update);
-            }
-        }
+        this.addGeojson = (data) => {
+            sources.push(new StaticDataSource(data, update));
+            update();
+            return this;
+        };
 
-        this._featureById = (id) => {
-            return featuresById.get(id);
-        }
+        this.addGeojsonUrl = (url, pollInterval) => {
+            sources.push(new AjaxDataSource(url, pollInterval, update));
+            update();
+            return this;
+        };
 
-        Object.defineProperty(this, 'features', {
-            get: () => [...featuresById.values()],
+        this.on = (event, callback) => {
+            listeners.add(event, callback);
+            return this;
+        };
+
+        this.off = (event, callback) => {
+            listeners.remove(event, callback);
+            return this;
+        };
+
+        Object.defineProperty(this, 'city', {
+            get: () => city,
             enumerable: true,
         });
-    }
-}
 
-export
-function firstCity(features) {
-    for(let f of features) {
-        if (f instanceof City) {
-            return f;
-        }
+        Object.defineProperty(this, 'features', {
+            get: () => features,
+            enumerable: true,
+        });
+
+        update();
     }
 }
 
 export * from './features';
 export * from './sources';
-
-

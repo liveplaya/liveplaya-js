@@ -6,7 +6,7 @@ import {fromFeet, toDegrees} from '../math';
 import {toPixels, toZoom} from '../util';
 
 
-function renderPaths(projection, features, group, weight, color, onClick) {
+function renderPaths(projection, features, city, group, weight, color, onClick) {
     const geometryToPath = geoPath(projection);
     const nodes = group.selectAll('path').data(features);
     
@@ -24,8 +24,8 @@ function renderPaths(projection, features, group, weight, color, onClick) {
 }
 
 
-export function renderRoads(projection, container, features, style, onClick) {
+export function renderRoads(projection, container, features, city, style, onClick) {
     const roadFeatures = features.filter((f) => f.isRoad);
-    renderPaths(projection, roadFeatures, container.select('g.outlines'), 10, style.outlineColor, onClick);
-    renderPaths(projection, roadFeatures, container.select('g.fills'), 7, style.backgroundColor, onClick);
+    renderPaths(projection, roadFeatures, city, container.select('g.outlines'), 10, style.outlineColor, onClick);
+    renderPaths(projection, roadFeatures, city, container.select('g.fills'), 7, style.backgroundColor, onClick);
 }

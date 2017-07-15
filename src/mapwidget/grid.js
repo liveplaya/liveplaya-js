@@ -3,10 +3,8 @@ import {scaleLinear} from 'd3-scale';
 import {range} from 'd3-array';
 import {fromFeet} from '../math';
 import {toPixels} from '../util';
-import {firstCity} from '../mapdata';
 
-export function renderGrid(projection, container, features, style) {
-    const city = firstCity(features);
+export function renderGrid(projection, container, city, style) {
     let radials = [];
     if (style.showGrid && city) {
         const center = projection(city.center);
