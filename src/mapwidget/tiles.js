@@ -29,7 +29,7 @@ function tile2lat(y,z) {
 }
 
 export 
-function renderTiles(projection, container, unused, style) {
+function renderTiles(projection, container, style) {
     const z = toZoom(projection.scale());
     const zoom = Math.round(z);
     const k = Math.pow(2, z - zoom);
@@ -42,11 +42,13 @@ function renderTiles(projection, container, unused, style) {
     const bottom_tile = lat2tile(southeast[1], zoom);
     const right_tile  = lng2tile(southeast[0], zoom);
     const tiles = [];
-    for(let x=left_tile; x <=right_tile; ++x) {
-      for(let y=top_tile; y <=bottom_tile; ++y) {
-        const pt = projection([tile2lng(x, zoom), tile2lat(y, zoom)]);
-        tiles.push([tileUrl(x, y, zoom, style.rasterTiles), Math.floor(pt[0]), Math.floor(pt[1]), z]);
-      }
+    if (style.rasterTiles) {
+        for(let x=left_tile; x <=right_tile; ++x) {
+          for(let y=top_tile; y <=bottom_tile; ++y) {
+            const pt = projection([tile2lng(x, zoom), tile2lat(y, zoom)]);
+            tiles.push([tileUrl(x, y, zoom, style.rasterTiles), Math.floor(pt[0]), Math.floor(pt[1]), z]);
+          }
+        }        
     }
 
     const group = container.select('g.tiles');
@@ -64,6 +66,7 @@ function renderTiles(projection, container, unused, style) {
             .attr("x", (t) => t[1])
             .attr("y", (t) => t[2])
             .attr("z", (t)=>t[3])
+            .style('opacity', style.rasterTilesOpacity)
             .on('error', function() { select(this).style('visibility', 'hidden'); });
 
 }

@@ -1,3 +1,5 @@
+import {getDistance, normalizeAngle, toFeet} from '../math';
+
 const minutesOnClockFace = 12*60;
 
 
@@ -49,10 +51,46 @@ export class Clock {
     }
 }
 
+export function toClock(angle) {
+    angle = normalizeAngle(angle, Math.PI);
+    let mins = Math.floor(angle * minutesOnClockFace / (2*Math.PI) + 0.5);
+    let hr = Math.floor(mins/60);
+    if (hr == 0) {
+        hr = 12;
+    }
+    return new Clock(hr, mins);
+}
+
 export class Address {
-    constructor(clock, distance) {
+    constructor(clock, distance, street, landmark) {
         this.clock = clock;
         this.distance = distance;
+        this.street = street;
+        this.landmak = landmark;
+    }
+
+    toString() {
+        if (self.distance > 10000) {
+            return 'default world';
+        }
+        const res = this.clock.toString();
+        if (!this.street) {
+            return res + ' / ' + toFeet(this.distance).toFixed(0) + ' ft';
+        }
+        return res + ' & ' + this.street.letter;
+    }
+
+    toLongString() {
+        const landmarkName = self.distance > 10000 ? 'Default World' : self.landmark ? self.landmark.name : null;
+        let res = this.clock.toString();
+        if (this.street) {
+            res += ' & ' + this.street.name;
+        }
+        if (landmarkName) {
+            res += '(' + landmarkName + ')';
+        }
+        res += ', ' + toFeet(this.distance).toFixed(0) + ' feet';
+        return res;
     }
 }
 

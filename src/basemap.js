@@ -60,7 +60,20 @@ export const data = {
             "year": 2017
          }, 
          "type": "Feature"
-      }
+      },
+
+            {
+                  "type": "Feature",
+                  "geometry": null,
+                  "id": "discofish",
+                  "properties": {
+                        "vehicle": "artcar",
+                        "name": "Disco Fish",
+                        "description": "DiscoFish is an art car that takes inspiration from the angler fish. Converted from a 21 person, double-decker bus, DiscoFish offers a complete pro-audio sound system, front stage, 30″ illuminated disco ball, and fold down padded fins for guest seating. Come inside the fish to grab a drink at the installed full bar, or climb up to the second level, hang with the DJ, chill and take it all in. This awesome machine is covered with 3000 LEDs that are individually lit and computer controlled to have patterns or messages ripple over the fish. ",
+                        "tracker": "aprs/discof"
+                  }
+            }
+
    ], 
    "type": "FeatureCollection"
 };

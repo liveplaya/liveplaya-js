@@ -1,6 +1,6 @@
 import {select} from 'd3-selection';
 import {geoMercator as mercator} from 'd3-geo';
-import {MapData, StaticDataSource, AjaxDataSource, firstCity} from '../mapdata';
+import {MapData} from '../mapdata';
 import {fromZoom, toZoom} from '../util';
 import {clamp} from '../math';
 import {enableZoom} from './zoomer'; 
@@ -9,31 +9,40 @@ import {renderGrid} from './grid';
 import {renderRoads} from './roads';
 import {renderLabels} from './labels';
 import {renderPois} from './pois';
+import {renderPlayaBg} from './playabg';
 import {renderOthers} from './others';
 import {data as thisYearBaseMap} from '../basemap';
+
+function getFeatureColor(f, style, isSelected) {
+    if (f.kind == 'vehicle') {
+        return style.highlightColor;
+    }
+    return style.outlineColor;
+}
 
 export default 
 class MapWidget {
     constructor(element, {
         center, 
-        data=thisYearBaseMap, 
-        dataUrl = null,
-        dataPollInterval = 30,
+        baseData=thisYearBaseMap, 
         zoom=14.38, 
         maxZoom=18,
         minZoom=14,
         showGrid=false, 
-        showArt=true, 
+        showPoiStatus=true, 
+        showRasterTilesOnPlaya=false,
         rasterTiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
+        rasterTilesOpacity=1, 
         outlineColor='#999',
         mutedColor='#ccc',
+        highlightColor='#ff0000',
         backgroundColor='#fff',
         onclick=(f) => console.log(f.name + ' clicked'),
         onviewchanged=() => {},
+        featureColor=getFeatureColor,
     }={}) {
         
-        const mapdata = new MapData(dataUrl ? [new StaticDataSource(data), new AjaxDataSource(dataUrl, dataPollInterval)] : 
-            [new StaticDataSource(data)]);
+        const mapdata = new MapData(baseData);
 
         zoom = clamp(zoom, minZoom, maxZoom);
 
@@ -48,10 +57,9 @@ class MapWidget {
 
         const render = () => {
             if (!center) {
-                const city = firstCity(mapdata.features);
-                center = city ? city.center : null;
+                center = mapdata.city ? mapdata.city.center : null;
             }
-            renderMap(element, mapdata.features, currentProjection(), this, this.onclick);
+            renderMap(element, mapdata, currentProjection(), this, this.onclick);
         };
 
         this.onviewchanged = onviewchanged;
@@ -80,6 +88,31 @@ class MapWidget {
             center = this.unproject([element.clientWidth - focusPoint[0], 
                 element.clientHeight - focusPoint[1]]);
             render();
+        };
+
+        this.clearData = () => {
+            mapdata.clear();
+            return this;
+        };
+
+        this.addGeojsonData = (...args) => {
+            mapdata.addGeojson(...args);
+            return this;
+        };
+
+        this.addGeojsonDataUrl = (...args) => {
+            mapdata.addGeojsonUrl(...args);
+            return this;
+        };
+
+        this.onData = (...args) => {
+            mapdata.on(...args);
+            return this;
+        };
+
+        this.offData = (...args) => {
+            mapdata.off(...args);
+            return this;
         };
 
         Object.defineProperty(this, 'data', {
@@ -111,15 +144,27 @@ class MapWidget {
             enumerable: true,
         });
 
-        Object.defineProperty(this, 'showArt', {
-            get: () => showArt,
-            set: (v) => { showArt = v; render(); },
+        Object.defineProperty(this, 'showRasterTilesOnPlaya', {
+            get: () => showRasterTilesOnPlaya,
+            set: (v) => { showRasterTilesOnPlaya = v; render(); },
+            enumerable: true,
+        });
+
+        Object.defineProperty(this, 'showPoiStatus', {
+            get: () => showPoiStatus,
+            set: (v) => { showPoiStatus = v; render(); },
             enumerable: true,
         });
 
         Object.defineProperty(this, 'rasterTiles', {
             get: () => rasterTiles,
             set: (v) => { rasterTiles = v; render(); },
+            enumerable: true,
+        });
+
+        Object.defineProperty(this, 'rasterTilesOpacity', {
+            get: () => rasterTilesOpacity,
+            set: (v) => { rasterTilesOpacity = v; render(); },
             enumerable: true,
         });
 
@@ -135,9 +180,21 @@ class MapWidget {
             enumerable: true,
         });
 
+        Object.defineProperty(this, 'highlightColor', {
+            get: () => highlightColor,
+            set: (v) => { highlightColor = v; render(); },
+            enumerable: true,
+        });
+
         Object.defineProperty(this, 'backgroundColor', {
             get: () => backgroundColor,
             set: (v) => { backgroundColor = v; render(); },
+            enumerable: true,
+        });
+
+        Object.defineProperty(this, 'featureColor', {
+            get: () => featureColor,
+            set: (v) => { featureColor = v; render(); },
             enumerable: true,
         });
 
@@ -145,13 +202,23 @@ class MapWidget {
         render();
         enableZoom(this, select(element).select('.container'));
 
-        mapdata.query(render);
+        // Rerender every once in a while to update relative times
+        // like "N minutes ago"
+        let refreshTimerId = null;
+        const refreshRelativeTimes = () => {
+            render();
+            refreshTimerId = setTimeout(refreshRelativeTimes, 30000);
+        };
+        refreshTimerId = setTimeout(refreshRelativeTimes, 30000);
+
+
+        mapdata.on('update', render);
     }
 
 
 }
 
-function renderMap(element, features, projection, style, onclick) {
+function renderMap(element, data, projection, style, onclick) {
     let nodes = select(element).selectAll('svg').data([1]);
 
     nodes.exit()
@@ -172,6 +239,7 @@ function renderMap(element, features, projection, style, onclick) {
 
     nodes = container.selectAll('g').data([
         'tiles', 
+        'playabg', 
         'grid', 
         //'clicktargets',
         'outlines',
@@ -193,9 +261,14 @@ function renderMap(element, features, projection, style, onclick) {
                 select(this).classed(d, true); 
             });
 
+    const features = data.features;
+    const city = data.city;
+
+    renderTiles(projection, container, style);
+    renderPlayaBg(projection, container, style);
+    renderGrid(projection, container, city, style);
+
     const layerRenderers = [
-        renderTiles,
-        renderGrid,
         renderRoads,
         renderLabels,
         renderPois,
@@ -203,6 +276,6 @@ function renderMap(element, features, projection, style, onclick) {
     ];
 
     for(let r of layerRenderers) {
-        r(projection, container, features, style, onclick);
+        r(projection, container, features, city, style, onclick);
     }        
 }

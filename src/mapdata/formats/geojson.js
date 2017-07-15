@@ -1,6 +1,10 @@
 import {fromFeet, getLocation, normalizeAngle} from '../../math';
-import {City, CStreet, TStreet, Promenande, Plaza, RodsRoad, Fence, Art, Marker} from '../features';
+import {City, CStreet, TStreet, Promenande, Plaza, RodsRoad, Fence, Art, Vehicle, APRSStation, Marker} from '../features';
 import {Clock} from '../address';
+
+function lastSeen(feat) {
+    return feat.properties.lastseen ? new Date(feat.properties.lastseen*1000) : null;
+};
 
 export 
 function parseGeojson(data) {
@@ -17,19 +21,19 @@ function parseGeojson(data) {
 
     const parsedFeatures = [];
     for(let df of dataFeatures) {
+        if (!df.properties) {
+            df.properties = {}
+        }
         if (df.properties.brc == 'city') {
-            let c = df.properties;
-            let city = new City(c.year, df.geometry.coordinates, Clock.toRadians(c.northSouthAxisHour, c.northSouthAxisMinute));
+            const c = df.properties;
+            const city = new City(c.year, df.geometry.coordinates, Clock.toRadians(c.northSouthAxisHour, c.northSouthAxisMinute));
             parsedFeatures.push(city);
 
-            city.cstreets = {};
             for(let i=0; i<c.streetNames.length; ++i) {
-                let street = new CStreet(city, 
+                parsedFeatures.push(new CStreet(city, 
                     c.streetNames[i], 
                     fromFeet(c.streetRadiusesFt[i]), 
-                    fromFeet(c.regularStreetWidthFt));
-                city.cstreets[street.letter] = street;
-                parsedFeatures.push(street);
+                    fromFeet(c.regularStreetWidthFt)));
             }
             city.esplanade = new CStreet(city, 'Esplanade', fromFeet(c.esplanadeRadiusFt),
                 fromFeet(c.esplanadeWidthFt));
@@ -66,8 +70,27 @@ function parseGeojson(data) {
         else if (df.properties.brc == 'art') {
             parsedFeatures.push(new Art(city, df.properties.name, df.geometry.coordinates));
         }
+        else if (df.properties.vehicle) {
+            parsedFeatures.push(new Vehicle(df.id, df.properties.name, df.properties.vehicle, {
+                trackerId: df.properties.tracker,
+            }));
+        }
+        else if (df.properties.aprs) {
+            parsedFeatures.push(new APRSStation(df.properties.aprs, {
+                lastseen:lastSeen(df), 
+                coords:df.geometry ? df.geometry.coordinates : null,
+                rawPacket: df.properties.rawpacket,
+                symbol: df.properties.symbol,
+                comment: df.properties.comment,
+                path: df.properties.path,
+            }));
+        }
         else if (df.geometry && df.geometry.type == 'Point') {
-            parsedFeatures.push(new Marker(df.geometry.coordinates, df.properties.name, df.properties.color, df.id));
+            parsedFeatures.push(new Marker(df.geometry.coordinates, {
+                name:df.properties.name, 
+                id:df.id, 
+                lastseen:lastSeen(df)
+            }));
         }
     }
     return parsedFeatures;

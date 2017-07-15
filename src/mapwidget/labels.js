@@ -1,19 +1,19 @@
 import {select} from 'd3-selection';
 import {fromFeet, toDegrees} from '../math';
-import {CStreet, TStreet, Marker} from '../mapdata';
 
-export function renderLabels(projection, container, features, style, onclick) {
-    const cstreets = features.filter((f) => f instanceof CStreet);
-    const tstreets = features.filter((f) => f instanceof TStreet);
-    const markers = features.filter((f) => f instanceof Marker);
+export function renderLabels(projection, container, features, city, style, onclick) {
+    const cstreets = features.filter(f => f.streetKind == 'cstreet');
+    const tstreets = features.filter(f => f.stretKind == 'tstreat');
+    const pois = features.filter((f) => f.geometry && f.geometry.type == 'Point' && !f.tracked);
 
     const tstreetLabels = tstreets.map((street) => { return {
         onclick: () => onclick(street),
-        pt: projection(street.city.getLocation(street.direction, street.city.cstreets['L'].radius)),
+        pt: projection(street.city.getLocation(street.direction, street.city.lStreet.radius)),
         txt: street.name,
         ang: street.city.getBearing(street.direction.radians),
         off: [0,-15],
         anchor: 'middle',
+        alignment: 'auto',
         fontSize: 10,
         fontWeight: 'normal',
         stroke: 'none',
@@ -21,13 +21,14 @@ export function renderLabels(projection, container, features, style, onclick) {
         fill: style.outlineColor,
         selectable: false,
     }});
-    const cstreetLabels = cstreets.map((street) => { return {
+    const cstreetLabels = cstreets.map(street => { return {
         onclick: () => onclick(street),
         pt: projection(street.city.getLocation({hour:10, minute:0}, street.radius)),
         txt: street.name,
         ang: 0,
         off: [14,0],
         anchor: 'start',
+        alignment: 'auto',
         fontSize: 10,
         fontWeight: 'normal',
         stroke: 'none',
@@ -35,23 +36,39 @@ export function renderLabels(projection, container, features, style, onclick) {
         fill: style.outlineColor,
         selectable: false,
     }});
-    const markerLabels = markers.map((marker) => { return {
-        onclick: () => onclick(marker),
-        pt: projection(marker.coords),
-        txt: marker.name,
+    const poiLabels = pois.map(poi => { return {
+        onclick: () => onclick(poi),
+        pt: projection(poi.coords),
+        txt: poi.name,
         ang: 0,
-        off: [0,-8],
+        off: [0,8],
         anchor: 'middle',
+        alignment: 'hanging',
         fontSize: 12,
         fontWeight: 'bold',
         stroke: style.backgroundColor,
         strokeWidth: 7,
-        fill: marker.color,
+        fill: style.featureColor(poi, style),
         selectable: true,
     }});
+    const poiStatuses = style.showPoiStatus ? pois.map(poi => { return {
+        onclick: () => onclick(poi),
+        pt: projection(poi.coords),
+        txt: poi.status(city),
+        ang: 0,
+        off: [0,12+10],
+        anchor: 'middle',
+        alignment: 'hanging',
+        fontSize: 10,
+        fontWeight: 'normal',
+        stroke: style.backgroundColor,
+        strokeWidth: 7,
+        fill: style.featureColor(poi, style),
+        selectable: true,
+    }}) : [];
 
     const group = container.select('g.labels');    
-    let nodes = group.selectAll("text").data([...cstreetLabels, ...tstreetLabels, ...markerLabels]);
+    let nodes = group.selectAll("text").data([...cstreetLabels, ...tstreetLabels, ...poiStatuses, ...poiLabels]);
 
     nodes.exit()
         .remove();
@@ -67,6 +84,7 @@ export function renderLabels(projection, container, features, style, onclick) {
             .attr('font-size', (l) => l.fontSize)
             .attr('font-weight', (l) => l.fontWeight)
             .attr('text-anchor', (l) => l.anchor)
+            .attr('alignment-baseline', (l) => l.alignment)
             .attr('fill', (l) => l.fill)
             .attr('pointer-events', (l) => l.selectable ? 'visible' : 'none')
             .attr('transform', (l) => 'translate(' + l.pt.join(',') + ') rotate(' + toDegrees(l.ang) + ') translate(' + l.off.join(',') + ')')    
