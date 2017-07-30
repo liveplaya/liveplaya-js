@@ -1,6 +1,6 @@
 import {City} from './features';
 import {StaticDataSource, AjaxDataSource} from './sources';
-import {Listeners} from '../util'
+import {Listeners} from '../util';
 
 export
 class MapData {

@@ -3,6 +3,8 @@ import {getLocation, getDistance, getBearing, interpolateArc} from '../math';
 import {Clock, Address, toClock, ctr} from './address';
 import {slugify, daysAgoStr} from '../util';
 
+const NPOINTS = 50;
+
 export class Feature {
     constructor(id) {
         this.id = id;
@@ -20,6 +22,10 @@ export class Feature {
         return this.geometry && this.geometry.type == 'Point' ? this.geometry.coordinates : null;
     }
 
+    get isRoad() {
+        return this.highway == 'tertiary';
+    }
+
     status(city, {verbose=false}={}) {
         const parts = [];
         if (this.lastseen) {
@@ -33,6 +39,21 @@ export class Feature {
             parts.push('at unknown location');
         }
         return parts.join(' ');
+    }
+
+    setGeometry(geom) {
+        this.geometry = geom;
+        return this;
+    }
+
+    setProperties(props) {
+        if (!props) {
+            return;
+        }
+        for(let name in props) {
+            this[name] = props[name];
+        }
+        return this;
     }
 }
 
@@ -145,7 +166,7 @@ export class CStreet extends CityFeature {
         return {
             type: 'MultiLineString',
             coordinates: spans.map((s) => interpolateArc(this.center, this.radius, 
-                this.city.getBearing(s[0]), this.city.getBearing(s[1]), 25))
+                this.city.getBearing(s[0]), this.city.getBearing(s[1]), NPOINTS))
         }
     }
     
@@ -242,7 +263,7 @@ export class Plaza extends CityFeature {
     get geometry() {
         return {
             type: 'Polygon',
-            coordinates: [interpolateArc(this.center, this.radius, 0, 2*Math.PI, 25)]
+            coordinates: [interpolateArc(this.center, this.radius, 0, 2*Math.PI, NPOINTS)]
         }
     }
     
@@ -268,7 +289,7 @@ export class RodsRoad extends CityFeature {
     get geometry() {
         return {
             type: 'LineString',
-            coordinates: interpolateArc(this.center, this.radius, 0, 2*Math.PI, 25)
+            coordinates: interpolateArc(this.center, this.radius, 0, 2*Math.PI, NPOINTS)
         }
     }
     

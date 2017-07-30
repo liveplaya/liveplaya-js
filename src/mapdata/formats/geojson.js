@@ -1,5 +1,5 @@
 import {fromFeet, getLocation, normalizeAngle} from '../../math';
-import {City, CStreet, TStreet, Promenande, Plaza, RodsRoad, Fence, Art, Vehicle, APRSStation, Marker} from '../features';
+import {Feature, City, CStreet, TStreet, Promenande, Plaza, RodsRoad, Fence, Art, Vehicle, APRSStation, Marker} from '../features';
 import {Clock} from '../address';
 
 function lastSeen(feat) {
@@ -91,6 +91,9 @@ function parseGeojson(data) {
                 id:df.id, 
                 lastseen:lastSeen(df)
             }));
+        }
+        else {
+            parsedFeatures.push(new Feature(df.id).setGeometry(df.geometry).setProperties(df.properties));
         }
     }
     return parsedFeatures;

@@ -29,7 +29,7 @@ export function renderOthers(projection, container, features, city, style, oncli
                 }
                 else {
                     select(this)
-                        .attr('fill', style.mutedColor)
+                        .attr('fill',  f => f.geometry && f.geometry.type == 'Point' ? style.mutedColor : 'none')
                         .attr('stroke', style.mutedColor)
                         .attr('stroke-width', 0.3)
                         .attr('d', (f) => geometryToPath(f.geometry))
