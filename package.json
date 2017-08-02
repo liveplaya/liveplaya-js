@@ -1,8 +1,14 @@
 {
   "name": "brcmap",
   "version": "0.0.0",
-  "description": "JavaScript library for building live real-time maps of Black Rock City, the home of Burning Man festival",
+  "description": "JavaScript library for rendering live maps of Black Rock City, the home of Burning Man festival",
   "repository": "https://github.com/brcmap/brcmapjs",
+  "files": [
+    "build/dist",
+    "src",
+    "LICENSE",
+    "COPYRIGHT"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
     "d3": "^4.9.1"

@@ -2,21 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Static Map Demo</title>
+    <title>BRCMap JavaScript Library</title>
+	<script id="mainscript" src="../build/dist/brcmap.debug.js"></script>
+
+    <link rel="stylesheet" href="styles.css">	
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 </head>
 <body>
-<div id="map" style="position: absolute; width: 100%; height: 100%">
-<script src="../build/brcmap.debug.js"></script>
-<script>
-	var map = new brcmap.Map(document.getElementById('map'))
-		//.addGeojsonDataUrl('http://localhost:8082', 1)
-		;
+<h1>BRCMap JavaScript Library</h1>
 
-	document.onkeydown = function(e) {
-		if (e.key == 'g') {
-			map.showGrid = !map.showGrid;
-		}
-	}
+<p>
+<a href="https://github.com/brcmap/brcmapjs/releases/download/v0.0.0/brcmapjs.zip">Download v0.0.0</a> | 
+<a href="https://github.com/brcmap/brcmapjs/releases" target="_gh">Other releases</a> | 
+<a href="https://github.com/brcmap/brcmapjs" target="_gh">Source code</a>
+</p>
+
+<p>This is a JavaScript Library for rendering live interactive maps of Black Rock City, the home of <a href="https://burningman.org/" target="_bm">Burning Man</a> festival.
+It supports offline static maps that work without a server or internet connection as well as online maps that show real-time data, e.g. art car locations.
+</p>
+
+<p>Live demo (drag to pan, double click, shift-double-click to zoom):</p>
+
+<div id="map" class="map" style="height: 550px;"></div>
+<script id="script" class="example" data-wrap-html="1">
+	var map = new brcmap.Map(document.getElementById('map'));
+</script>
+<p>To render the map above create HTML page with the following content:</p>
+<pre id="code" class="html"></pre>
+
+<!-- h2>API</h2 -->
+
+<h2>Examples</h2>
+
+<h3>Customizing map style</h3>
+<div id="map1" class="map"></div>
+<pre id="code1" class="js"></pre>
+<script id="script1" class="example">
+	var map1 = new brcmap.Map(document.getElementById('map1'), {
+		zoom: 15, 
+		backgroundColor: '#111',
+		outlineColor: '#00ff00',
+	});
+</script>
+
+
+<!-- h3>Using raster tiles</h3>
+<div id="map2" class="map"></div>
+<pre id="code2" class="js"></pre>
+<script id="script2" class="example">
+	var map2 = new brcmap.Map(document.getElementById('map2'), {
+		zoom: 13,
+		minZoom: 13,
+		rasterTiles: 'http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.jpg',
+		showRasterTilesOnPlaya: true, 
+	});
+</script -->
+
+	
+<h2>Contact</h2>
+
+<p>This project is maintained by Dmitry Azovtsev. <a href="mailto:azov@mail.ru">Email me</a> your questions and comments.</p>
+
+<script>
+    var samples = document.getElementsByClassName('example');
+    for (i=0; i<samples.length; i++) {
+        var script = samples[i];
+        var n = script.id.substr(6,1);
+        var code = document.getElementById('code' + n);
+        code.textContent = script.textContent.trim();
+        if (script.dataset.wrapHtml) {
+        	var scriptUrl = document.getElementById('mainscript').src;
+        	code.textContent = 
+				'<!DOCTYPE html>\n' +
+				'<html lang="en">\n' +
+				'<head>\n' + 
+				'<script src="' + scriptUrl + '"><\/script>\n' + 
+				'</head>\n' +
+				'<body>\n' +
+				'<div id="map" style="position: absolute; width: 100%; height: 100%"></div>\n' +
+				'<script>\n\n' +
+				code.textContent +
+				'\n\n<\/script>\n' +
+				'</body>\n' +
+				'</html>';
+        }
+        hljs.highlightBlock(code);
+    }
 </script>
 </body>
 </html>
