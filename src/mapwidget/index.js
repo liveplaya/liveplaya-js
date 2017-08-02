@@ -25,7 +25,7 @@ class MapWidget {
     constructor(element, {
         center, 
         baseData=thisYearBaseMap, 
-        zoom=14.38, 
+        zoom=14, 
         maxZoom=18,
         minZoom=14,
         showGrid=false, 
