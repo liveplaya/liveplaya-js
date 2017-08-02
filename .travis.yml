@@ -1,8 +1,24 @@
 language: node_js
 node_js:
-- 8
+  - 8
+
 matrix:
   include:
   - os: linux
     dist: trusty
-    script: make all
+    script: BRCMAP_VERSION=$(echo $TRAVIS_TAG | sed -E 's/^v(.+)/\1/') make all
+
+deploy:
+  - provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN
+    local_dir: build/www
+    on:
+      tags: true
+  
+  - provider: releases
+    skip_cleanup: true
+    api_key: $GITHUB_TOKEN
+    file: build/dist/brcmap.min.js
+    on:
+      tags: true
