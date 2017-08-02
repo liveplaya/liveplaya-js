@@ -40,6 +40,7 @@ class MapWidget {
         onclick=(f) => console.log(f.name + ' clicked'),
         onviewchanged=() => {},
         featureColor=getFeatureColor,
+        wantsFocus=false,
     }={}) {
         
         const mapdata = new MapData(baseData);
@@ -213,6 +214,10 @@ class MapWidget {
 
 
         mapdata.on('update', render);
+
+        if (wantsFocus) {
+            element.focus();
+        }       
     }
 
 
@@ -277,5 +282,5 @@ function renderMap(element, data, projection, style, onclick) {
 
     for(let r of layerRenderers) {
         r(projection, container, features, city, style, onclick);
-    }        
+    } 
 }

@@ -1,46 +1,38 @@
 import {select, event} from 'd3-selection';
+import {zoom, zoomTransform, zoomIdentity} from 'd3-zoom';
 import {fromZoom, toZoom, debounce} from '../util';
 
 export 
 function enableZoom(map, container) {
-    let x0,y0;
+    let x0,y0,zoomer,onStart,onEnd,onZoom,onKeyDown;
 
-    const onDragProgress = () => {
-        const tr = [event.clientX - x0, event.clientY - y0];
-        const scale = 1;
-        //console.log(`zoom tr: ${tr}, s:${scale}`);
-        container.style('transform', `translate(${tr[0]}px,${tr[1]}px) scale(${scale})`);
-    };
-
-    const onDragStarted = () => {
+    onStart = (e) => {
         x0 = event.clientX;
         y0 = event.clientY;
-        select(map.element).on('mousemove.zoom', onDragProgress);
     };
 
-    const onDragEnded = () => {
-        const tr = [event.clientX - x0, event.clientY - y0];
-        const scale = 1;
-        //console.log(`zoomend tr:${tr}, sc:${scale}`);
-        let newCenterPoint = [map.element.clientWidth/2 - tr[0], 
-            map.element.clientHeight/2 - tr[1]];
+    onEnd = (e) => {        
+        const tr = [event.transform.x, event.transform.y];
+        const k = event.transform.k;
+
+        let newCenterPoint = [(map.element.clientWidth/2 - tr[0])/k, 
+            (map.element.clientHeight/2 - tr[1])/k];
         let newCenterLngLat = map.unproject(newCenterPoint);
-        let newScale = fromZoom(map.zoomLevel) * scale;
-        map.setView(newCenterLngLat, toZoom(newScale));
-        select(map.element).on('mousemove.zoom', null);
-        container.style('transform', `translate(0px,0px) scale(1)`);
+        let newZoom = toZoom(fromZoom(map.zoomLevel) * event.transform.k);
+
+        map.setView(newCenterLngLat, newZoom);
+    
+        container.attr('transform', null);
+        event.target.on('.zoom', null);
+        select(map.element).call(zoomer.transform, zoomIdentity);
+        event.target.on('end.zoom', onEnd).on('zoom', onZoom);
     };
 
-    const onDblClick = () => {
-        if (event.shiftKey) {
-            map.zoomAround([event.clientX, event.clientY], 0.5);
-        }
-        else {
-            map.zoomAround([event.clientX, event.clientY], 2);
-        }
+    onZoom = (e) => {
+        container.attr('transform', event.transform);
     };
 
-    const onKeyDown = () => {
+    onKeyDown = () => {
         const zoomStep = 0.1;
         if (event.keyCode == 187 /* equals, same key as plus */) {
             map.setView(map.center, map.zoomLevel + zoomStep);
@@ -52,11 +44,11 @@ function enableZoom(map, container) {
         }
     };
 
-    select(map.element).on('mousedown.zoom', onDragStarted);
-    select(map.element).on('mouseup.zoom', onDragEnded);
-    select(map.element).on('dblclick.zoom', onDblClick);
-    select('body').on('keydown.zoom', onKeyDown);
-};
+    zoomer = zoom().on("end.zoom", onEnd).on("zoom.zoom", onZoom);
+    
+    select(map.element).call(zoomer);
+    select(map.element).on('keydown.zoom', onKeyDown);
+}
 
 export
 function disableZoom(map) {
