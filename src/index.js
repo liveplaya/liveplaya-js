@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import {StaticGeoJSON, AjaxGeoJSON, DefaultData} from './mapdata';
 import MapWidget from './mapwidget';
 
