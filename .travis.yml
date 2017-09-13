@@ -15,6 +15,7 @@ deploy:
     local_dir: build/www
     on:
       tags: true
+      condition: "$TRAVIS_TAG =~ ^v.*"
   
   - provider: releases
     skip_cleanup: true
@@ -22,3 +23,4 @@ deploy:
     file: build/dist/brcmap.min.js
     on:
       tags: true
+      condition: "$TRAVIS_TAG =~ ^v.*"
