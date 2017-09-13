@@ -37,6 +37,8 @@ class MapWidget {
         mutedColor='#ccc',
         highlightColor='#ff0000',
         backgroundColor='#fff',
+        primaryFontSize=12,
+        secondaryFontSize=10,
         onclick=(f) => console.log(f.name + ' clicked'),
         onviewchanged=() => {},
         featureColor=getFeatureColor,
@@ -196,6 +198,18 @@ class MapWidget {
         Object.defineProperty(this, 'featureColor', {
             get: () => featureColor,
             set: (v) => { featureColor = v; render(); },
+            enumerable: true,
+        });
+
+        Object.defineProperty(this, 'primatyFontSize', {
+            get: () => primatyFontSize,
+            set: (v) => { primatyFontSize = v; render(); },
+            enumerable: true,
+        });
+
+        Object.defineProperty(this, 'secondaryFontSize', {
+            get: () => secondaryFontSize,
+            set: (v) => { secondaryFontSize = v; render(); },
             enumerable: true,
         });
 
