@@ -75,7 +75,18 @@ function parseGeojson(data) {
                 trackerId: df.properties.tracker,
             }));
         }
+        else if (df.properties.aprs == 'station') {
+            parsedFeatures.push(new APRSStation(df.properties.callsign, {
+                lastseen:lastSeen(df), 
+                coords:df.geometry ? df.geometry.coordinates : null,
+                rawPacket: df.properties.rawpacket,
+                symbol: df.properties.symbol,
+                comment: df.properties.comment,
+                path: df.properties.path,
+            }));
+        }
         else if (df.properties.aprs) {
+            // legacy format
             parsedFeatures.push(new APRSStation(df.properties.aprs, {
                 lastseen:lastSeen(df), 
                 coords:df.geometry ? df.geometry.coordinates : null,
