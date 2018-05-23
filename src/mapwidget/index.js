@@ -29,7 +29,8 @@ class MapWidget {
         maxZoom=18,
         minZoom=14,
         showGrid=false, 
-        showPoiStatus=true, 
+        showPoiStatus=false, 
+        showLabels=true,
         showRasterTilesOnPlaya=false,
         rasterTiles='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
         rasterTilesOpacity=1, 
@@ -45,6 +46,14 @@ class MapWidget {
         wantsFocus=false,
     }={}) {
         
+        let style = {
+            showGrid, showPoiStatus, showLabels, showRasterTilesOnPlaya, 
+            rasterTiles, rasterTilesOpacity, 
+            outlineColor, mutedColor, highlightColor, backgroundColor,
+            primaryFontSize, secondaryFontSize, featureColor, 
+            wantsFocus,
+        };
+
         const mapdata = new MapData(baseData);
 
         zoom = clamp(zoom, minZoom, maxZoom);
@@ -62,7 +71,7 @@ class MapWidget {
             if (!center) {
                 center = mapdata.city ? mapdata.city.center : null;
             }
-            renderMap(element, mapdata, currentProjection(), this, this.onclick);
+            renderMap(element, mapdata, currentProjection(), style, this.onclick);
         };
 
         this.onviewchanged = onviewchanged;
@@ -144,6 +153,12 @@ class MapWidget {
         Object.defineProperty(this, 'showGrid', {
             get: () => showGrid,
             set: (v) => { showGrid = v; render(); },
+            enumerable: true,
+        });
+
+        Object.defineProperty(this, 'showLabels', {
+            get: () => showLabels,
+            set: (v) => { showLabels = v; render(); },
             enumerable: true,
         });
 

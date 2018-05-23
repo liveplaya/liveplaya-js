@@ -27,6 +27,7 @@ It supports offline static maps that work without a server or internet connectio
 <div id="map" class="map" style="height: 550px;"></div>
 <script id="script" class="example" data-wrap-html="1">
 	var map = new brcmap.Map(document.getElementById('map'));
+	map.addGeojsonDataUrl('http://www.brcmap.org/mapdata/beacons.json', 30);
 </script>
 <p>To render the map above create HTML page with the following content:</p>
 <pre id="code" class="html"></pre>
